@@ -176,7 +176,7 @@
 
 (defn clabango-benches []
   (do-benchmarks
-    "Clabango"
+    "Clabango (string)"
     (simple-clabango-no-fd)
     (list-clabango-no-fd 50)
     (list-clabango-no-fd 1000)))
@@ -191,7 +191,7 @@
 
 (defn selmer-benches []
   (do-benchmarks
-    "Selmer"
+    "Selmer (string)"
     (simple-selmer-no-fd)
     (list-selmer-no-fd 50)
     (list-selmer-no-fd 1000)))
@@ -205,7 +205,7 @@
 
 (defn pebble-benches []
   (do-benchmarks
-    "Pebble"
+    "Pebble (string)"
     (simple-pebble-no-fd)
     (list-pebble-no-fd 50)
     (list-pebble-no-fd 1000)))
@@ -219,12 +219,12 @@
 
 (defn stencil-benches []
   (do-benchmarks
-    "Stencil"
+    "Stencil (string)"
     (simple-stencil-no-fd)
     (list-stencil-no-fd 50)
     (list-stencil-no-fd 1000)))
 
-(defn stencil-benches-hinted []
+(defn stencil-benches-file []
   (do-benchmarks
     "Stencil (file)"
     (simple-stencil)
@@ -276,7 +276,7 @@
       (pebble-benches-file)
       (mustache-benches)
       (stencil-benches)
-      (stencil-benches-hinted)
+      (stencil-benches-file)
       (str-benches)
       (hiccup-benches)
       (hiccup-benches-hinted)
@@ -285,6 +285,7 @@
       #_(laser-benches)
       #_(laser-benches-hinted)
       (enlive-benches)
+      (tinsel-benches)
       )))
 
 (defn to-microsecs [t]
