@@ -1,6 +1,7 @@
 (ns clojure-template-benchmarks.core
   (:use criterium.core
-        tinsel.core)
+        tinsel.core
+        clojure-csv.core)
   (:require [clabango.parser :refer [render render-file]]
             [selmer.parser :as selmer]
             [stencil.core :as stencil]
@@ -8,7 +9,7 @@
             [me.raynes.laser :as laser :refer [defdocument]]
             [net.cgrand.enlive-html :as enlive]
             [me.shenfeng.mustache :as mustache]
-            [selmer.parser :as selmer]))
+            [clj-pebble.core :as pebble]))
 
 (def bar (str "bar"))
 
@@ -30,18 +31,18 @@
 
 (defn list-hiccup [ceil]
   (hiccup/html [:ul (for [x (range 1 ceil)]
-               [:li x])]))
+                      [:li x])]))
 
 (defn simple-hiccup-hint []
   (hiccup/html [:span {:class "foo"} ^String bar]))
 
 (defn list-hiccup-hint [ceil]
   (hiccup/html [:ul (for [x (range 1 ceil)]
-               [:li ^Number x])]))
+                      [:li ^Number x])]))
 
 
 (defn simple-clabango-no-fd []
-  (render (str "<span class=\"foo\">{{bar}}</span>") {:bar bar}))
+  (render "<span class=\"foo\">{{bar}}</span>" {:bar bar}))
 
 (defn list-clabango-no-fd [ceil]
   (render "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>" {:items (range 1 ceil)}))
@@ -59,6 +60,27 @@
 
 (defn list-selmer [ceil]
   (selmer/render-file "clojure_template_benchmarks/templates/list.html" {:items (range 1 ceil)}))
+
+
+(defn simple-selmer-no-fd []
+  (selmer/render "<span class=\"foo\">{{bar}}</span>" {:bar bar}))
+
+(defn list-selmer-no-fd [ceil]
+  (selmer/render "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>" {:items (range 1 ceil)}))
+
+
+(defn simple-pebble []
+  (pebble/render-file "src/clojure_template_benchmarks/templates/simple.html" {:bar bar}))
+
+(defn list-pebble [ceil]
+  (pebble/render-file "src/clojure_template_benchmarks/templates/list.html" {:items (range 1 ceil)}))
+
+
+(defn simple-pebble-no-fd []
+  (pebble/render "<span class=\"foo\">{{bar}}</span>" {:bar bar}))
+
+(defn list-pebble-no-fd [ceil]
+  (pebble/render "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>" {:items (range 1 ceil)}))
 
 
 (defn simple-stencil-no-fd []
@@ -87,149 +109,222 @@
 (deftemplate list-tinsel [[:ul]] [ceil] (tag= :ul) (set-content (for [x (range 1 ceil)] [:li x])))
 
 (defdocument simple-laser "<span class=\"foo\"></span>" []
-  (laser/class= "foo") (laser/content bar))
+             (laser/class= "foo") (laser/content bar))
 (defdocument list-laser "<ul></ul>" [ceil]
-  (laser/element= :ul) (laser/content
-                        (for [x (range 1 ceil)]
-                          (laser/node :li :content (str x)))))
+             (laser/element= :ul) (laser/content
+                                    (for [x (range 1 ceil)]
+                                      (laser/node :li :content (str x)))))
 
-(defdocument simple-laser-hinted "<span class=\"foo\"></span>" []
-  (laser/class= "foo") (laser/content ^String bar))
-(defdocument list-laser-hinted "<ul></ul>" [ceil]
-  (laser/element= :ul) (laser/content
-                        (for [x (range 1 ceil)]
-                          (laser/node :li :content (str ^Number x)))))
+#_(defdocument simple-laser-hinted "<span class=\"foo\"></span>" []
+             (laser/class= "foo") (laser/content ^String bar))
+#_(defdocument list-laser-hinted "<ul></ul>" [ceil]
+             (laser/element= :ul) (laser/content
+                                    (for [x (range 1 ceil)]
+                                      (laser/node :li :content (str ^Number x)))))
 
 (enlive/deftemplate simple-enlive-core "clojure_template_benchmarks/templates/simple.enlive" []
-  [:span.foo] (enlive/content bar))
+                    [:span.foo] (enlive/content bar))
 (enlive/deftemplate list-enlive-core "clojure_template_benchmarks/templates/list.enlive" [ceil]
-  [:ul] (enlive/clone-for [x (range 1 ceil)]
-                          (enlive/content (str x))))
+                    [:ul] (enlive/clone-for [x (range 1 ceil)]
+                                            (enlive/content (str x))))
 
 (defn simple-enlive [] (apply str (simple-enlive-core)))
 (defn list-enlive [ceil] (apply str (list-enlive-core ceil)))
 
+(defmacro do-benchmarks
+  [benchmark-name simple-expr small-list-expr big-list-expr]
+  `(do
+     (println "\n **** Running Benchmark:" ~benchmark-name "*** \n")
+     (-> {}
+         (assoc
+           :simple
+           (do
+             (println ">>> Simple Data Injection\n")
+             (quick-benchmark ~simple-expr {})))
+         (assoc
+           :small-list
+           (do
+             (println ">>> Small List (50 items)\n")
+             (quick-benchmark ~small-list-expr {})))
+         (assoc
+           :big-list
+           (do
+             (println ">>> Big List (1000 items)\n")
+             (quick-benchmark ~big-list-expr {})))
+         (assoc :name ~benchmark-name))))
+
 (defn str-benches []
-  (println "\n\n ***** str benchmarks ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-str)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-str 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-str 1000)))
-  (println "\n --- \n"))
+  (do-benchmarks
+    "String"
+    (simple-str)
+    (list-str 50)
+    (list-str 1000)))
 
 (defn hiccup-benches []
-  (println "\n\n ***** hiccup benchmarks  ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-hiccup)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-hiccup 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-hiccup 1000)))
-  (println "\n --- \n")
-  (println "\n\n ***** type-hinted hiccup benchmarks  ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-hiccup-hint)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-hiccup-hint 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-hiccup-hint 1000)))
-  (println "\n --- \n"))
+  (do-benchmarks
+    "Hiccup"
+    (simple-hiccup)
+    (list-hiccup 50)
+    (list-hiccup 1000)))
+
+(defn hiccup-benches-hinted []
+  (do-benchmarks
+    "Hiccup (type-hinted)"
+    (simple-hiccup-hint)
+    (list-hiccup-hint 50)
+    (list-hiccup-hint 1000)))
 
 (defn clabango-benches []
-  (println "\n\n ***** clabango string ***** \n\n")
-  (quick-bench (simple-clabango-no-fd))
-  (println "\n --- \n")
-  (quick-bench (list-clabango-no-fd 50))
-  (println "\n --- \n")
-  (quick-bench (list-clabango-no-fd 1000))
-  (println "\n --- \n")
+  (do-benchmarks
+    "Clabango"
+    (simple-clabango-no-fd)
+    (list-clabango-no-fd 50)
+    (list-clabango-no-fd 1000)))
 
-  (println "\n\n ***** clabango from file template ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-clabango)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-clabango 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-clabango 1000)))
-  (println "\n --- \n"))
+
+(defn clabango-benches-file []
+  (do-benchmarks
+    "Clabango (file)"
+    (simple-clabango)
+    (list-clabango 50)
+    (list-clabango 1000)))
 
 (defn selmer-benches []
-  (println "\n\n ***** selmer from file template ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-selmer)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-selmer 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-selmer 1000)))
-  (println "\n --- \n"))
+  (do-benchmarks
+    "Selmer"
+    (simple-selmer-no-fd)
+    (list-selmer-no-fd 50)
+    (list-selmer-no-fd 1000)))
+
+(defn selmer-benches-file []
+  (do-benchmarks
+    "Selmer (file)"
+    (simple-selmer)
+    (list-selmer 50)
+    (list-selmer 1000)))
+
+(defn pebble-benches []
+  (do-benchmarks
+    "Pebble"
+    (simple-pebble-no-fd)
+    (list-pebble-no-fd 50)
+    (list-pebble-no-fd 1000)))
+
+(defn pebble-benches-file []
+  (do-benchmarks
+    "Pebble (file)"
+    (simple-pebble)
+    (list-pebble 50)
+    (list-pebble 1000)))
 
 (defn stencil-benches []
-  (println "\n\n ***** stencil string ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-stencil-no-fd)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-stencil-no-fd 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-stencil-no-fd 1000)))
-  (println "\n --- \n")
+  (do-benchmarks
+    "Stencil"
+    (simple-stencil-no-fd)
+    (list-stencil-no-fd 50)
+    (list-stencil-no-fd 1000)))
 
-  (println "\n\n ***** stencil file ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-stencil)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-stencil 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-stencil 1000)))
-  (println "\n --- \n"))
+(defn stencil-benches-hinted []
+  (do-benchmarks
+    "Stencil (file)"
+    (simple-stencil)
+    (list-stencil 50)
+    (list-stencil 1000)))
 
 (defn mustache-benches []
-  (println "\n\n ***** mustache file ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-mustache)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-mustache 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-mustache 1000)))
-  (println "\n --- \n"))
+  (do-benchmarks
+    "Mustache"
+    (simple-mustache)
+    (list-mustache 50)
+    (list-mustache 1000)))
 
 (defn tinsel-benches []
-  (println "\n\n ***** tinsel ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-tinsel)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-tinsel 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-tinsel 1000)))
-  (println "\n --- \n"))
+  (do-benchmarks
+    "Tinsel"
+    (simple-tinsel)
+    (list-tinsel 50)
+    (list-tinsel 1000)))
 
-(defn laser-benches []
-  (println "\n\n ***** laser ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-laser)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-laser 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-laser 1000)))
-  (println "\n --- \n")
+#_(defn laser-benches []
+  (do-benchmarks
+    "Laser"
+    (simple-laser)
+    (list-laser 50)
+    (list-laser 1000)))
 
-  (println "\n\n ***** laser (hinted) ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-laser-hinted)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-laser-hinted 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-laser-hinted 1000))))
+#_(defn laser-benches-hinted []
+  (do-benchmarks
+    "Laser (type-hinted)"
+    (simple-laser-hinted)
+    (list-laser-hinted 50)
+    (list-laser-hinted 1000)))
 
 (defn enlive-benches []
-  (println "\n\n ***** enlive ***** \n\n")
-  (with-progress-reporting (quick-bench (simple-enlive)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-enlive 50)))
-  (println "\n --- \n")
-  (with-progress-reporting (quick-bench (list-enlive 1000)))
-  (println "\n --- \n"))
+  (do-benchmarks
+    "Enlive"
+    (simple-enlive)
+    (list-enlive 50)
+    (list-enlive 1000)))
+
+(defn run-benchmarks []
+  (doall
+    (conj
+      []
+      (selmer-benches)
+      (selmer-benches-file)
+      (pebble-benches)
+      (pebble-benches-file)
+      (mustache-benches)
+      (stencil-benches)
+      (stencil-benches-hinted)
+      (str-benches)
+      (hiccup-benches)
+      (hiccup-benches-hinted)
+      (clabango-benches)
+      (clabango-benches-file)
+      #_(laser-benches)
+      #_(laser-benches-hinted)
+      (enlive-benches)
+      )))
+
+(defn to-microsecs [t]
+  (* t 1000000))
+
+(defn get-std-dev [variance]
+  (to-microsecs (Math/sqrt variance)))
+
+(defn simplify-results [results]
+  (->> results
+       (map
+         (fn [{:keys [simple small-list big-list] :as result}]
+           (assoc result
+                  :simple (to-microsecs (first (:mean simple)))
+                  :simple-std-dev (get-std-dev (first (:variance simple)))
+                  :small-list (to-microsecs (first (:mean small-list)))
+                  :small-list-std-dev (get-std-dev (first (:variance small-list)))
+                  :big-list (to-microsecs (first (:mean big-list)))
+                  :big-list-std-dev (get-std-dev (first (:variance big-list)))
+                  )))
+       (sort-by :name)))
+
+(defn to-csv [simplified-results]
+  (map
+    (fn [{:keys [name simple simple-std-dev small-list small-list-std-dev big-list big-list-std-dev]}]
+      [name
+       (str simple)
+       (str simple-std-dev)
+       (str small-list)
+       (str small-list-std-dev)
+       (str big-list)
+       (str big-list-std-dev)])
+    simplified-results))
 
 (defn -main [& args]
-  ;; (println (simple-hiccup))
-  ;; (println (simple-clabango-no-fd))
-  ;; (println (count (list-filler-hiccup)))
-  ;; (println (count (list-filler-clabango-no-fd)))
-  (selmer-benches)
-  (mustache-benches)
-  (stencil-benches)
-  (str-benches)
-  (hiccup-benches)
-  (clabango-benches)
-  (laser-benches)
-  (enlive-benches))
+  (let [results (run-benchmarks)
+        results-table (simplify-results results)]
+    (clojure.pprint/print-table [:name :simple :simple-std-dev :small-list :small-list-std-dev :big-list :big-list-std-dev] results-table)
+    (as-> results-table x
+          (to-csv x)
+          (write-csv x :force-quote true)
+          (spit "results.csv" x))))
+
