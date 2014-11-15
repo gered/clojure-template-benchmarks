@@ -14,5 +14,5 @@
                  [tinsel "0.4.0" :exclusions [hickory]]
                  [me.raynes/laser "2.0.0-SNAPSHOT"]
                  [me.shenfeng/mustache "1.1"]
-                 [clj-pebble "0.1.0-SNAPSHOT"]
+                 [clj-pebble "0.1.0"]
                  [clojure-csv/clojure-csv "2.0.1"]])
