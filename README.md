@@ -10,7 +10,7 @@ Template engines being compared are:
 * [Enlive](https://github.com/cgrand/enlive)
 * [Clabango](https://github.com/danlarkin/clabango)
 * [Selmer](https://github.com/yogthos/Selmer)
-* clj-pebble _(soon-to-be-released Clojure wrapper library around [Pebble](https://github.com/mbosecke/pebble))_
+* [clj-pebble](https://github.com/gered/clj-pebble)
 
 ## Data
 
@@ -18,109 +18,109 @@ Times shown are in microseconds (µs) in the format "mean time / standard deviat
 
 <table>
 
-    <tr>
-      <th>Template Engine</th>
-      <th>Simple Data Injection</th>
-      <th>Small List (50 items)</th>
-      <th>Big List (1000 items)</th>
-    </tr>
+	<tr>
+		<th>Template Engine</th>
+		<th>Simple Data Injection</th>
+		<th>Small List (50 items)</th>
+		<th>Big List (1000 items)</th>
+	</tr>
 
-    <tr>
-      <td>str</td>
-      <td>0.0897 / 0.0009</td>
-      <td>8.4822 / 0.1109</td>
-      <td>167.5538 / 1.5672</td>
-    </tr>
-
-    <tr>
-      <td>Tinsel</td>
-      <td>0.1832 / 0.0007</td>
-      <td>12.0418 / 0.1884</td>
-      <td>236.5161 / 1.3767</td>
-    </tr>
-
-    <tr>
-      <td>Stencil (string)</td>
-      <td>19.0593 / 0.1757</td>
-      <td>71.6874 / 0.5020</td>
-      <td>526.9889 / 7.2122</td>
-    </tr>
-
-    <tr>
-      <td>Stencil (file)</td>
-      <td>0.6663 / 0.0033</td>
-      <td>23.4976 / 0.1265</td>
-      <td>476.8262 / 2.1910</td>
-    </tr>
-
-    <tr>
-      <td>mustache.clj (file)</td>
-      <td>0.3394 / 0.0039</td>
-      <td>8.1361 / 0.0839</td>
-      <td>165.4727 / 1.2440</td>
-    </tr>
-
-    <tr>
-      <td>Hiccup</td>
-      <td>0.1598 / 0.0010</td>
-      <td>12.1548 / 0.0950</td>
-      <td>237.7211 / 1.0018</td>
-    </tr>
-
-    <tr>
-      <td>Hiccup (type-hinted)</td>
-      <td>0.1731 / 0.0010</td>
-      <td>12.8421 / 0.1939</td>
-      <td>247.7344 / 1.2166</td>
-    </tr>
-
-    <tr>
-      <td>Enlive</td>
-      <td>13.3319 / 0.0650</td>
-      <td>116.5084 / 0.9408</td>
-      <td>2141.3317 / 7.9543</td>
-    </tr>
-
-    <tr>
-      <td>Clabango (string)</td>
-      <td>207.5223 / 3.6133</td>
-      <td>844.5899 / 12.0383</td>
-      <td>9822.2863 / 40.4448</td>
-    </tr>
-
-    <tr>
-      <td>Clabango (file)</td>
-      <td>263.1341 / 5.0118</td>
-      <td>907.2633 / 14.9110</td>
-      <td>9996.2817 / 57.1756</td>
-    </tr>
-
-    <tr>
-      <td>Selmer (string)</td>
-      <td>22.8039 / 0.0753</td>
-      <td>107.4600 / 1.3940</td>
-      <td>1138.7408 / 10.4449</td>
-    </tr>
-
-    <tr>
-      <td>Selmer (file)</td>
-      <td>10.7812 / 0.0694</td>
-      <td>65.6449 / 0.5891</td>
-      <td>1108.8427 / 8.1423</td>
-    </tr>
-
-    <tr>
-      <td>clj-pebble (string)</td>
-      <td>4.9072 / 0.0668</td>
-      <td>26.7018 / 0.2296</td>
-      <td>442.8252 / 1.9989</td>
-    </tr>
-
-    <tr>
-      <td>clj-pebble (file)</td>
-      <td>4.8032 / 0.0368</td>
-      <td>26.8360 / 0.4538</td>
-      <td>446.6798 / 2.2262</td>
-    </tr>
+	<tr>
+		<td>str</td>
+		<td>0.0887 / 0.0010</td>
+		<td>8.5493 / 0.0921</td>
+		<td>188.9816 / 24.2857</td>
+	</tr>
+	
+	<tr>
+		<td>Tinsel</td>
+		<td>0.1835 / 0.0010</td>
+		<td>12.1433 / 0.0712</td>
+		<td>238.9615 / 2.3069</td>
+	</tr>
+	
+	<tr>
+		<td>Stencil (string)</td>
+		<td>18.2637 / 0.0944</td>
+		<td>71.9232 / 0.7373</td>
+		<td>527.0062 / 2.6310</td>
+	</tr>
+	
+	<tr>
+		<td>Stencil (file)</td>
+		<td>0.6550 / 0.0021</td>
+		<td>23.4530 / 0.0961</td>
+		<td>478.5369 / 3.1301</td>
+	</tr>
+	
+	<tr>
+		<td>mustache.clj</td>
+		<td>0.3373 / 0.0028</td>
+		<td>8.2423 / 0.1148</td>
+		<td>167.3133 / 0.7366</td>
+	</tr>
+	
+	<tr>
+		<td>Hiccup</td>
+		<td>0.1632 / 0.0016</td>
+		<td>12.0269 / 0.1069</td>
+		<td>236.0784 / 0.5189</td>
+	</tr>
+	
+	<tr>
+		<td>Hiccup (type-hinted)</td>
+		<td>0.1730 / 0.0013</td>
+		<td>12.9494 / 0.0837</td>
+		<td>252.9637 / 2.9224</td>
+	</tr>
+	
+	<tr>
+		<td>Enlive</td>
+		<td>13.6911 / 0.1515</td>
+		<td>116.9049 / 1.2055</td>
+		<td>2130.2041 / 8.6054</td>
+	</tr>
+	
+	<tr>
+		<td>Clabango (string)</td>
+		<td>210.0403 / 4.0629</td>
+		<td>819.6462 / 9.1964</td>
+		<td>9434.1045 / 102.2924</td>
+	</tr>
+	
+	<tr>
+		<td>Clabango (file)</td>
+		<td>263.1698 / 2.6355</td>
+		<td>891.2824 / 11.2746</td>
+		<td>9562.9530 / 110.1058</td>
+	</tr>
+	
+	<tr>
+		<td>Selmer (string)</td>
+		<td>22.7604 / 0.1545</td>
+		<td>105.2653 / 0.6792</td>
+		<td>1129.9113 / 7.6378</td>
+	</tr>
+	
+	<tr>
+		<td>Selmer (file)</td>
+		<td>10.6799 / 0.1022</td>
+		<td>64.3357 / 0.1904</td>
+		<td>1075.8512 / 6.1394</td>
+	</tr>
+	
+	<tr>
+		<td>clj-pebble (string)</td>
+		<td>2.7430 / 0.0150</td>
+		<td>24.3148 / 0.1917</td>
+		<td>436.8095 / 5.2781</td>
+	</tr>
+	
+	<tr>
+		<td>clj-pebble (file)</td>
+		<td>2.7475 / 0.0231</td>
+		<td>24.4161 / 0.1602</td>
+		<td>440.0397 / 2.1993</td>
+	</tr>
 
 </table>
